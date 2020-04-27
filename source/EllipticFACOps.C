@@ -62,7 +62,6 @@
 #include "SAMRAI/xfer/PatchLevelFullFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include "boost/make_shared.hpp"
 #include <boost/lexical_cast.hpp>
 
 #include <cassert>
@@ -295,7 +294,7 @@ void efo_ewingfixfluxcondc3d_(
 */
 EllipticFACOps::EllipticFACOps(
     const tbox::Dimension &dim, const std::string &object_name,
-    const boost::shared_ptr<tbox::Database> &database, const int depth)
+    const std::shared_ptr<tbox::Database> &database, const int depth)
     : d_dim(dim),
       d_object_name(object_name),
       d_ln_min(-1),
@@ -340,7 +339,7 @@ EllipticFACOps::EllipticFACOps(
                                      database && database->isDatabase("hypre_"
                                                                       "solver")
                                          ? database->getDatabase("hypre_solver")
-                                         : boost::shared_ptr<tbox::Database>());
+                                         : std::shared_ptr<tbox::Database>());
       d_hypre_solver.push_back(hypre_solver);
 #endif
 
@@ -391,7 +390,7 @@ EllipticFACOps::EllipticFACOps(
                                                               "private_m",
                                                 1));
    for (int i = 0; i < depth; i++) {
-      boost::shared_ptr<pdat::SideVariable<double> > d_var;
+      std::shared_ptr<pdat::SideVariable<double> > d_var;
       d_var.reset(new pdat::SideVariable<double>(
           tbox::Dimension(NDIM),
           object_name + "EllipticFACOps::privateD" +
@@ -399,7 +398,7 @@ EllipticFACOps::EllipticFACOps(
           1));
       d_d_var.push_back(d_var);
 
-      boost::shared_ptr<pdat::CellVariable<double> > c_var;
+      std::shared_ptr<pdat::CellVariable<double> > c_var;
       c_var.reset(new pdat::CellVariable<double>(
           tbox::Dimension(NDIM),
           object_name + "EllipticFACOps::privateC" +
@@ -445,7 +444,7 @@ EllipticFACOps::EllipticFACOps(
 }
 
 void EllipticFACOps::getFromInput(
-    const boost::shared_ptr<tbox::Database> &input_db)
+    const std::shared_ptr<tbox::Database> &input_db)
 {
    if (input_db) {
       d_coarse_solver_choice =
@@ -540,46 +539,46 @@ void EllipticFACOps::initializeOperatorState(
     *   are allocated
     *   has sufficient ghost width
     */
-   boost::shared_ptr<hier::Variable> var;
+   std::shared_ptr<hier::Variable> var;
    {
       vdb->mapIndexToVariable(rhs.getComponentDescriptorIndex(0), var);
       TBOX_ASSERT(var);
-      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::CellVariable<double> > cell_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(var));
       TBOX_ASSERT(cell_var);
    }
    {
       vdb->mapIndexToVariable(solution.getComponentDescriptorIndex(0), var);
       TBOX_ASSERT(var);
-      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::CellVariable<double> > cell_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(var));
       TBOX_ASSERT(cell_var);
    }
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level_ptr(
+      std::shared_ptr<hier::PatchLevel> level_ptr(
           d_hierarchy->getPatchLevel(ln));
       hier::PatchLevel &level = *level_ptr;
       for (hier::PatchLevel::iterator pi(level.begin()); pi != level.end();
            ++pi) {
          hier::Patch &patch = **pi;
-         boost::shared_ptr<hier::PatchData> fd(
+         std::shared_ptr<hier::PatchData> fd(
              patch.getPatchData(rhs.getComponentDescriptorIndex(0)));
          if (fd) {
             /*
              * Some data checks can only be done if the data already exists.
              */
-            boost::shared_ptr<pdat::CellData<double> > cd(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd));
+            std::shared_ptr<pdat::CellData<double> > cd(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(fd));
             TBOX_ASSERT(cd);
          }
-         boost::shared_ptr<hier::PatchData> ud(
+         std::shared_ptr<hier::PatchData> ud(
              patch.getPatchData(solution.getComponentDescriptorIndex(0)));
          if (ud) {
             /*
              * Some data checks can only be done if the data already exists.
              */
-            boost::shared_ptr<pdat::CellData<double> > cd(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud));
+            std::shared_ptr<pdat::CellData<double> > cd(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(ud));
             TBOX_ASSERT(cd);
             if (cd->getGhostCellWidth() <
                 hier::IntVector::getOne(tbox::Dimension(NDIM))) {
@@ -624,12 +623,12 @@ void EllipticFACOps::initializeOperatorState(
     *   which should be set to either "Ewing" or one of the
     *   acceptable strings for looking up the refine operator.
     */
-   boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+   std::shared_ptr<geom::CartesianGridGeometry> geometry(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
            d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(geometry);
 
-   boost::shared_ptr<hier::Variable> variable;
+   std::shared_ptr<hier::Variable> variable;
 
    vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_prolongation_refine_operator =
@@ -743,12 +742,12 @@ void EllipticFACOps::initializeOperatorState(
 
    for (int dest_ln = d_ln_min + 1; dest_ln <= d_ln_max; ++dest_ln) {
 
-      boost::shared_ptr<xfer::PatchLevelFullFillPattern> fill_pattern(
-          boost::make_shared<xfer::PatchLevelFullFillPattern>());
+      std::shared_ptr<xfer::PatchLevelFullFillPattern> fill_pattern(
+          std::make_shared<xfer::PatchLevelFullFillPattern>());
       d_prolongation_refine_schedules[dest_ln] =
           d_prolongation_refine_algorithm->createSchedule(
               fill_pattern, d_hierarchy->getPatchLevel(dest_ln),
-              boost::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
+              std::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
               &d_bc_helper);
       if (!d_prolongation_refine_schedules[dest_ln]) {
          TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
@@ -870,17 +869,17 @@ void EllipticFACOps::setM(const int m_id)
    // copy one patch at a time to include ghost values
    SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level_ptr(
+      std::shared_ptr<hier::PatchLevel> level_ptr(
           d_hierarchy->getPatchLevel(ln));
       hier::PatchLevel &level = *level_ptr;
       for (hier::PatchLevel::iterator pi(level.begin()); pi != level.end();
            ++pi) {
          hier::Patch &patch = **pi;
-         boost::shared_ptr<pdat::CellData<double> > src(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > src(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(m_id)));
-         boost::shared_ptr<pdat::CellData<double> > dst(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > dst(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(d_m_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
          double l2 = ops.L2Norm(src, src->getBox());
@@ -1042,7 +1041,7 @@ void EllipticFACOps::prolongErrorAndCorrect(
    }
 #endif
 
-   boost::shared_ptr<hier::PatchLevel> fine_level =
+   std::shared_ptr<hier::PatchLevel> fine_level =
        d_hierarchy->getPatchLevel(dest_ln);
 
    /*
@@ -1116,7 +1115,7 @@ void EllipticFACOps::smoothErrorByRedBlack(
                                   "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    const int data_id = data.getComponentDescriptorIndex(0);
 
@@ -1156,7 +1155,7 @@ void EllipticFACOps::smoothErrorByRedBlack(
       xeqScheduleGhostFillNoCoarse(data_id, ln);
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
          bool deallocate_flux_data_when_done = false;
          if (flux_id == d_flux_scratch_id) {
@@ -1172,14 +1171,14 @@ void EllipticFACOps::smoothErrorByRedBlack(
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> > err_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > err_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  data.getComponentPatchData(0, *patch)));
-         boost::shared_ptr<pdat::CellData<double> > residual_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > residual_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  residual.getComponentPatchData(0, *patch)));
-         boost::shared_ptr<pdat::SideData<double> > flux_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > flux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(flux_id)));
 
          TBOX_ASSERT(err_data);
@@ -1203,7 +1202,7 @@ void EllipticFACOps::smoothErrorByRedBlack(
       // Black sweep.
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
          bool deallocate_flux_data_when_done = false;
          if (flux_id == d_flux_scratch_id) {
@@ -1219,14 +1218,14 @@ void EllipticFACOps::smoothErrorByRedBlack(
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> > err_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > err_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  data.getComponentPatchData(0, *patch)));
-         boost::shared_ptr<pdat::CellData<double> > residual_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > residual_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  residual.getComponentPatchData(0, *patch)));
-         boost::shared_ptr<pdat::SideData<double> > flux_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > flux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(flux_id)));
 
          TBOX_ASSERT(err_data);
@@ -1284,8 +1283,8 @@ void EllipticFACOps::ewingFixFlux(const hier::Patch &patch,
 
    const int patch_ln = patch.getPatchLevelNumber();
    const hier::GlobalId id = patch.getGlobalId();
-   boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+   std::shared_ptr<geom::CartesianGridGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
            d_hierarchy->getGridGeometry()));
    const double *dx = patch_geom->getDx();
    const hier::Box &patch_box(patch.getBox());
@@ -1306,8 +1305,8 @@ void EllipticFACOps::ewingFixFlux(const hier::Patch &patch,
 
    if (d_poisson_spec[0].dIsVariable()) {
 
-      boost::shared_ptr<pdat::SideData<double> > diffcoef_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > diffcoef_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[0].getDPatchDataId())));
 
       for (bn = 0; bn < nboxes; ++bn) {
@@ -1493,7 +1492,7 @@ void EllipticFACOps::accumulateOperatorOnLevel(const int soln_id,
 {
    t_accumulate_operator->start();
 
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -1558,13 +1557,13 @@ void EllipticFACOps::accumulateOperatorOnLevel(const int soln_id,
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      const boost::shared_ptr<hier::Patch> patch = *pi;
+      const std::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> > soln_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > soln_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(soln_id)));
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
 
       TBOX_ASSERT(soln_data);
@@ -1588,18 +1587,18 @@ void EllipticFACOps::accumulateOperatorOnLevel(const int soln_id,
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
-      boost::shared_ptr<pdat::CellData<double> > m_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > m_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_m_id)));
-      boost::shared_ptr<pdat::CellData<double> > soln_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > soln_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(soln_id)));
-      boost::shared_ptr<pdat::CellData<double> > accum_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > accum_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(accum_id)));
 
       TBOX_ASSERT(soln_data);
@@ -1622,8 +1621,8 @@ void EllipticFACOps::accumulateOperatorOnLevel(const int soln_id,
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
-             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::OutersideData<double>, hier::PatchData>(
                  patch->getPatchData(d_oflux_scratch_id)));
          TBOX_ASSERT(oflux_data);
          oflux_data->copy(*flux_data);
@@ -1661,7 +1660,7 @@ void EllipticFACOps::computeCompositeResidualOnLevel(
                                   "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -1726,13 +1725,13 @@ void EllipticFACOps::computeCompositeResidualOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> > soln_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > soln_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               solution.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
       for (int depth = 0; depth < soln_data->getDepth(); depth++)
          computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(), *soln_data,
@@ -1752,21 +1751,21 @@ void EllipticFACOps::computeCompositeResidualOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
-      boost::shared_ptr<pdat::CellData<double> > soln_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<pdat::CellData<double> > soln_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               solution.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::CellData<double> > m_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > m_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_m_id)));
-      boost::shared_ptr<pdat::CellData<double> > rhs_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > rhs_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               rhs.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::CellData<double> > residual_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > residual_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               residual.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
 
       TBOX_ASSERT(soln_data);
@@ -1787,8 +1786,8 @@ void EllipticFACOps::computeCompositeResidualOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
-             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::OutersideData<double>, hier::PatchData>(
                  patch->getPatchData(d_oflux_scratch_id)));
          TBOX_ASSERT(oflux_data);
          oflux_data->copy(*flux_data);
@@ -1835,6 +1834,7 @@ double EllipticFACOps::computeResidualNorm(
     * RMSNorm: maybe good.
     */
    double norm = residual.RMSNorm();
+
    t_compute_residual_norm->stop();
    return norm;
 }
@@ -1847,7 +1847,7 @@ double EllipticFACOps::computeResidualNorm(
 ********************************************************************
 */
 void EllipticFACOps::computeVectorWeights(
-    boost::shared_ptr<hier::PatchHierarchy> hierarchy, int weight_id,
+    std::shared_ptr<hier::PatchHierarchy> hierarchy, int weight_id,
     int coarsest_ln, int finest_ln) const
 {
    TBOX_ASSERT(hierarchy);
@@ -1866,12 +1866,12 @@ void EllipticFACOps::computeVectorWeights(
        * On every level, first assign cell volume to vector weight.
        */
 
-      boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
+      std::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
       for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
            ++p) {
-         const boost::shared_ptr<hier::Patch> &patch = *p;
-         boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-             BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         const std::shared_ptr<hier::Patch> &patch = *p;
+         std::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
+             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
                  patch->getPatchGeometry()));
          const double *dx = patch_geometry->getDx();
          double cell_vol = dx[0];
@@ -1883,8 +1883,8 @@ void EllipticFACOps::computeVectorWeights(
             cell_vol *= dx[2];
          }
 
-         boost::shared_ptr<pdat::CellData<double> > w(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > w(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(weight_id)));
          if (!w) {
             TBOX_ERROR(d_object_name << ": weight id must refer to a "
@@ -1906,7 +1906,7 @@ void EllipticFACOps::computeVectorWeights(
           * at this level.
           */
 
-         boost::shared_ptr<hier::PatchLevel> next_finer_level(
+         std::shared_ptr<hier::PatchLevel> next_finer_level(
              hierarchy->getPatchLevel(ln + 1));
          hier::BoxContainer coarsened_boxes = next_finer_level->getBoxes();
          hier::IntVector coarsen_ratio(next_finer_level->getRatioToLevelZero());
@@ -1922,14 +1922,14 @@ void EllipticFACOps::computeVectorWeights(
          for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
               ++p) {
 
-            const boost::shared_ptr<hier::Patch> &patch = *p;
+            const std::shared_ptr<hier::Patch> &patch = *p;
             for (hier::BoxContainer::iterator i = coarsened_boxes.begin();
                  i != coarsened_boxes.end(); ++i) {
 
                hier::Box intersection = *i * (patch->getBox());
                if (!intersection.empty()) {
-                  boost::shared_ptr<pdat::CellData<double> > w(
-                      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                  std::shared_ptr<pdat::CellData<double> > w(
+                      SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                           patch->getPatchData(weight_id)));
                   w->fillAll(0.0, intersection);
 
@@ -1955,10 +1955,10 @@ void EllipticFACOps::checkInputPatchDataIndices(const int depth) const
 
    if (!d_poisson_spec[depth].dIsConstant() &&
        d_poisson_spec[depth].getDPatchDataId() != -1) {
-      boost::shared_ptr<hier::Variable> var;
+      std::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_poisson_spec[depth].getDPatchDataId(), var);
-      boost::shared_ptr<pdat::SideVariable<double> > diffcoef_var(
-          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::SideVariable<double> > diffcoef_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideVariable<double>, hier::Variable>(var));
       if (!diffcoef_var) {
          TBOX_ERROR(d_object_name << ": Bad diffusion coefficient patch data "
                                      "index.");
@@ -1966,20 +1966,20 @@ void EllipticFACOps::checkInputPatchDataIndices(const int depth) const
    }
 
    if (d_poisson_spec[depth].cIsVariable()) {
-      boost::shared_ptr<hier::Variable> var;
+      std::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_poisson_spec[depth].getCPatchDataId(), var);
-      boost::shared_ptr<pdat::CellVariable<double> > scalar_field_var(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::CellVariable<double> > scalar_field_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(var));
       if (!scalar_field_var) {
          TBOX_ERROR(d_object_name << ": Bad linear term patch data index.");
       }
    }
 
    if (d_flux_id != -1) {
-      boost::shared_ptr<hier::Variable> var;
+      std::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_flux_id, var);
-      boost::shared_ptr<pdat::SideVariable<double> > flux_var(
-          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::SideVariable<double> > flux_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideVariable<double>, hier::Variable>(var));
 
       TBOX_ASSERT(flux_var);
    }
@@ -2003,8 +2003,8 @@ void EllipticFACOps::computeFluxOnPatch(
    TBOX_ASSERT(w_data.getDepth() > depth);
    TBOX_ASSERT(Dgradw_data.getDepth() > depth);
 
-   boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+   std::shared_ptr<geom::CartesianGridGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
            d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(patch_geom);
    const hier::Box &box = patch.getBox();
@@ -2035,8 +2035,8 @@ void EllipticFACOps::computeFluxOnPatch(
        &lower[0], &upper[0], &lower[1], &upper[1], &lower[2], &upper[2], dx);
 #endif
    } else {
-      boost::shared_ptr<pdat::SideData<double> > D_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > D_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[depth].getDPatchDataId())));
       TBOX_ASSERT(D_data);
       TBOX_ASSERT(D_data->getDepth() == 1);
@@ -2084,8 +2084,8 @@ void EllipticFACOps::accumulateOperatorOnPatch(
    assert(soln_data.getDepth() > depth);
    assert(accum_data.getDepth() > depth);
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
    const hier::Box &box = patch.getBox();
    const hier::Index &lower = box.lower();
@@ -2100,11 +2100,11 @@ void EllipticFACOps::accumulateOperatorOnPatch(
    const double *flux2 = flux_data.getPointer(2, depth);
 #endif
 
-   boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
+   std::shared_ptr<pdat::CellData<double> > scalar_field_data;
    double scalar_field_constant;
    if (d_poisson_spec[0].cIsVariable()) {
       scalar_field_data =
-          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+          std::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
 #if NDIM == 2
       accumopvarsca2d_(
@@ -2201,8 +2201,8 @@ void EllipticFACOps::computeResidualOnPatch(
    TBOX_ASSERT(soln_data.getDepth() > depth);
    TBOX_ASSERT(rhs_data.getDepth() > depth);
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
    const hier::Box &box = patch.getBox();
    const hier::Index &lower = box.lower();
@@ -2219,11 +2219,11 @@ void EllipticFACOps::computeResidualOnPatch(
    const double *rhs = rhs_data.getPointer(depth);
    const double *sol = soln_data.getPointer(depth);
 
-   boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
+   std::shared_ptr<pdat::CellData<double> > scalar_field_data;
    double scalar_field_constant;
    if (d_poisson_spec[0].cIsVariable()) {
       scalar_field_data =
-          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+          std::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
       TBOX_ASSERT(scalar_field_data);
 
@@ -2348,22 +2348,22 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
    assert(d_m_id >= 0);
 
    const int offset = red_or_black == 'r' ? 0 : 1;
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
    const hier::Box &box = patch.getBox();
    const hier::Index &lower = box.lower();
    const hier::Index &upper = box.upper();
    const double *dx = patch_geom->getDx();
 
-   boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
+   std::shared_ptr<pdat::CellData<double> > scalar_field_data;
    double scalar_field_constant;
-   boost::shared_ptr<pdat::SideData<double> > diffcoef_data;
+   std::shared_ptr<pdat::SideData<double> > diffcoef_data;
    double diffcoef_constant;
 
    if (d_poisson_spec[depth].cIsVariable()) {
       scalar_field_data =
-          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+          std::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[depth].getCPatchDataId()));
    } else if (d_poisson_spec[depth].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[depth].getCConstant();
@@ -2372,13 +2372,13 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
    }
    if (d_poisson_spec[depth].dIsVariable()) {
       diffcoef_data =
-          boost::dynamic_pointer_cast<pdat::SideData<double>, hier::PatchData>(
+          std::dynamic_pointer_cast<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[depth].getDPatchDataId()));
    } else {
       diffcoef_constant = d_poisson_spec[depth].getDConstant();
    }
-   boost::shared_ptr<pdat::CellData<double> > m_data(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > m_data(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_m_id)));
 
    double maxres = 0.0;

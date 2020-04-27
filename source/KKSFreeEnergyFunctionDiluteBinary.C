@@ -44,7 +44,7 @@ using namespace std;
 
 
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
-    boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
+    std::shared_ptr<SAMRAI::tbox::Database> conc_db,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type)
     : d_energy_interp_func_type(energy_interp_func_type),
@@ -59,7 +59,7 @@ KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
 
    d_fA = log(1. / d_ke);
 
-   boost::shared_ptr<tbox::Database> newton_db;
+   std::shared_ptr<tbox::Database> newton_db;
    if (conc_db->isDatabase("NewtonSolver"))
       newton_db = conc_db->getDatabase("NewtonSolver");
 
@@ -69,7 +69,7 @@ KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
 //=======================================================================
 
 void KKSFreeEnergyFunctionDiluteBinary::setupSolver(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    tbox::plog << "KKSFreeEnergyFunctionDiluteBinary::setupSolver()..." << endl;
    d_solver = new KKSdiluteBinaryConcentrationSolver();
@@ -80,7 +80,7 @@ void KKSFreeEnergyFunctionDiluteBinary::setupSolver(
 //=======================================================================
 
 void KKSFreeEnergyFunctionDiluteBinary::readNewtonparameters(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    if (newton_db) {
       double tol = newton_db->getDoubleWithDefault("tol", 1.e-8);
@@ -98,7 +98,7 @@ void KKSFreeEnergyFunctionDiluteBinary::readNewtonparameters(
 //=======================================================================
 
 void KKSFreeEnergyFunctionDiluteBinary::readParameters(
-    boost::shared_ptr<tbox::Database> conc_db)
+    std::shared_ptr<tbox::Database> conc_db)
 {
    d_me = conc_db->getDouble("liquidus_slope");
    d_Tm = conc_db->getDouble("meltingT");
@@ -280,8 +280,7 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
       cerr << "ERROR, "
               "KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations() "
               "failed for conc="
-           << conc0 << ", hphi=" << hphi;
-      sleep(5);
+           << conc0 << ", hphi=" << hphi << std::endl;
       tbox::SAMRAI_MPI::abort();
    }
 

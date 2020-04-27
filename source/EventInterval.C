@@ -38,7 +38,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 using namespace std;
 
-EventInterval::EventInterval(boost::shared_ptr<tbox::Database> input_db,
+EventInterval::EventInterval(std::shared_ptr<tbox::Database> input_db,
                              const string name, const double default_value,
                              const string default_type,
                              const bool include_first, const bool include_last)
@@ -50,7 +50,7 @@ EventInterval::EventInterval(boost::shared_ptr<tbox::Database> input_db,
    d_include_first_step = include_first;
    d_include_last_step = include_last;
 
-   boost::shared_ptr<tbox::Database> interval_db;
+   std::shared_ptr<tbox::Database> interval_db;
 
    if (input_db) {
       if (input_db->isDatabase(name)) {

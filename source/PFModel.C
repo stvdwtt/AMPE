@@ -75,7 +75,7 @@ PFModel::~PFModel()
 
 //=======================================================================
 
-void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
+void PFModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                          const string& run_name, const bool is_from_restart,
                          const string& restart_read_dirname,
                          const int restore_num)
@@ -86,7 +86,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    tbox::Dimension dim(NDIM);
 
    if (input_db->isDatabase("Verbosity")) {
-      boost::shared_ptr<tbox::Database> verbosity_db =
+      std::shared_ptr<tbox::Database> verbosity_db =
           input_db->getDatabase("Verbosity");
 
       if (verbosity_db->getBoolWithDefault("silent", false)) {
@@ -114,7 +114,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
        new EventInterval(input_db, "Restart", 0.0, "step", false, true));
 
    if (input_db->isDatabase("Restart")) {
-      boost::shared_ptr<tbox::Database> restart_db =
+      std::shared_ptr<tbox::Database> restart_db =
           input_db->getDatabase("Restart");
 
       if (restart_db->keyExists("dirname")) {
@@ -166,11 +166,11 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    d_initial_conditions_level = 0;
 
    if (input_db->isDatabase("InitialConditions")) {
-      boost::shared_ptr<tbox::Database> ic_db =
+      std::shared_ptr<tbox::Database> ic_db =
           input_db->getDatabase("InitialConditions");
 
       if (ic_db->isDatabase("WriteEndingFile")) {
-         boost::shared_ptr<tbox::Database> end_ic_db =
+         std::shared_ptr<tbox::Database> end_ic_db =
              ic_db->getDatabase("WriteEndingFile");
 
          d_write_initial_conditions_file = true;
@@ -189,9 +189,9 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    //
    //-----------------------------------------------------------------------
 
-   boost::shared_ptr<tbox::Database> cart_db(
+   std::shared_ptr<tbox::Database> cart_db(
        new tbox::MemoryDatabase("CartesianGeometry"));
-   boost::shared_ptr<tbox::Database> geo_db(input_db->getDatabase("Geometry"));
+   std::shared_ptr<tbox::Database> geo_db(input_db->getDatabase("Geometry"));
 
 
    int periodic_array[NDIM];
@@ -240,11 +240,11 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
 
    //-----------------------------------------------------------------------
 
-   boost::shared_ptr<tbox::Database> tag_db(
+   std::shared_ptr<tbox::Database> tag_db(
        new tbox::MemoryDatabase("StandardTagAndInitialize"));
 
    if (d_amr_enabled) {
-      boost::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
+      std::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
 
       d_regrid_interval.reset(new EventInterval(amr_db, "Regrid", 5, "step"));
 
@@ -255,7 +255,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
       }
    } else {
       d_regrid_interval.reset(
-          new EventInterval(boost::shared_ptr<tbox::Database>(), "", 0));
+          new EventInterval(std::shared_ptr<tbox::Database>(), "", 0));
    }
 
    //-----------------------------------------------------------------------
@@ -267,17 +267,17 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
 
    // required: max_levels, largest_patch_size, ratio_to_coarser
 
-   boost::shared_ptr<tbox::Database> grid_db(
+   std::shared_ptr<tbox::Database> grid_db(
        new tbox::MemoryDatabase("StandardTagAndInitialize"));
 
    if (d_amr_enabled) {
-      boost::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
+      std::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
 
       grid_db = amr_db->getDatabase("GriddingAlgorithm");
    } else {
       grid_db->putInteger("max_levels", 1);
 
-      boost::shared_ptr<tbox::Database> largest_patch_db(
+      std::shared_ptr<tbox::Database> largest_patch_db(
           grid_db->putDatabase("largest_patch_size"));
 
       int lg_patch_size[NDIM];
@@ -291,14 +291,14 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
       grid_db->putDatabase("ratio_to_coarser");
    }
 
-   boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
+   std::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
        new mesh::StandardTagAndInitialize("StandardTagAndInitialize", this,
                                           tag_db));
 
-   boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
+   std::shared_ptr<mesh::BergerRigoutsos> box_generator(
        new mesh::BergerRigoutsos(dim));
 
-   boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
+   std::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
        new mesh::TreeLoadBalancer(dim, "LoadBalancer"));
    load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
@@ -306,7 +306,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
        new hier::PatchHierarchy("PatchHierarchy", d_grid_geometry,
                                 input_db->isDatabase("PatchHierarchy")
                                     ? input_db->getDatabase("PatchHierarchy")
-                                    : boost::shared_ptr<tbox::Database>()));
+                                    : std::shared_ptr<tbox::Database>()));
 
    d_gridding_algorithm.reset(
        new mesh::GriddingAlgorithm(d_patch_hierarchy, "GriddingAlgorithm",
@@ -339,7 +339,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    //
    if (d_visit_dump_interval->isActive()) {
 
-      boost::shared_ptr<tbox::Database> visit_db(
+      std::shared_ptr<tbox::Database> visit_db(
           input_db->getDatabase("Visit"));
 
       string visit_dump_dirname = "v." + run_name;
@@ -364,7 +364,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
 
 //=======================================================================
 
-void PFModel::readInitialDatabase(boost::shared_ptr<tbox::Database> input_db)
+void PFModel::readInitialDatabase(std::shared_ptr<tbox::Database> input_db)
 {
    // InitialConditions {
    //    filename = "initial_data.nc"
@@ -372,7 +372,7 @@ void PFModel::readInitialDatabase(boost::shared_ptr<tbox::Database> input_db)
    //    slice_index = 0
    // }
 
-   boost::shared_ptr<tbox::Database> data_db(
+   std::shared_ptr<tbox::Database> data_db(
        input_db->getDatabase("InitialConditions"));
    if (!data_db) {
       TBOX_ERROR("Input error: no InitialConditions database" << endl);
@@ -570,7 +570,7 @@ void PFModel::writeRestartFile(void)
 
 //=======================================================================
 
-void PFModel::Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+void PFModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    int fine_lev_before = d_patch_hierarchy->getFinestLevelNumber();
 
@@ -611,7 +611,7 @@ void PFModel::computeGrainDiagnostics(void)
 // Methods inherited from Serializable
 //
 
-void PFModel::putToRestart(const boost::shared_ptr<tbox::Database>& db) const
+void PFModel::putToRestart(const std::shared_ptr<tbox::Database>& db) const
 {
    assert(db);
 
@@ -625,7 +625,7 @@ void PFModel::putToRestart(const boost::shared_ptr<tbox::Database>& db) const
 }
 
 
-void PFModel::getFromInput(boost::shared_ptr<tbox::Database> input_db)
+void PFModel::getFromInput(std::shared_ptr<tbox::Database> input_db)
 {
    assert(input_db);
 
@@ -650,19 +650,19 @@ void PFModel::getFromInput(boost::shared_ptr<tbox::Database> input_db)
    }
 
    if (input_db->isDatabase("Amr")) {
-      boost::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
+      std::shared_ptr<tbox::Database> amr_db(input_db->getDatabase("Amr"));
       d_amr_enabled = amr_db->getBoolWithDefault("enabled", true);
    } else {
       d_amr_enabled = false;
    }
 }
 
-void PFModel::getFromRestart(boost::shared_ptr<tbox::Database> input_db)
+void PFModel::getFromRestart(std::shared_ptr<tbox::Database> input_db)
 {
-   boost::shared_ptr<tbox::Database> root_db(
+   std::shared_ptr<tbox::Database> root_db(
        tbox::RestartManager::getManager()->getRootDatabase());
 
-   boost::shared_ptr<tbox::Database> restart_db;
+   std::shared_ptr<tbox::Database> restart_db;
 
    if (root_db->isDatabase(d_object_name)) {
       restart_db = root_db->getDatabase(d_object_name);
@@ -728,10 +728,10 @@ void PFModel::getFromRestart(boost::shared_ptr<tbox::Database> input_db)
 //
 
 void PFModel::initializeLevelData(
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int level_number, const double time, const bool can_be_refined,
     const bool initial_time,
-    const boost::shared_ptr<hier::PatchLevel>& old_level,
+    const std::shared_ptr<hier::PatchLevel>& old_level,
     const bool allocate_data)
 {
    // Note that this method is pure virtual and MUST be implemented in derived
@@ -747,7 +747,7 @@ void PFModel::initializeLevelData(
 }
 
 void PFModel::resetHierarchyConfiguration(
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int coarsest_level, const int finest_level)
 {
    // Note that this method is pure virtual and MUST be implemented in derived

@@ -59,8 +59,8 @@ using namespace std;
 *************************************************************************
 */
 EllipticFACSolver::EllipticFACSolver(
-    const std::string& object_name, boost::shared_ptr<EllipticFACOps> fac_ops,
-    const boost::shared_ptr<tbox::Database>& database)
+    const std::string& object_name, std::shared_ptr<EllipticFACOps> fac_ops,
+    const std::shared_ptr<tbox::Database>& database)
     : d_object_name(object_name),
       d_fac_ops(fac_ops),
       d_fac_precond(object_name + "::fac_precond", d_fac_ops, database),
@@ -74,7 +74,7 @@ EllipticFACSolver::EllipticFACSolver(
       d_enable_logging(false),
       d_verbose(false)
 {
-   boost::shared_ptr<pdat::CellVariable<double> > vol_var(
+   std::shared_ptr<pdat::CellVariable<double> > vol_var(
        new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                       object_name + "::weight"));
    d_vol_id = hier::VariableDatabase::getDatabase()->registerVariableAndContext(
@@ -116,7 +116,7 @@ EllipticFACSolver::~EllipticFACSolver() { deallocateSolverState(); }
 ********************************************************************
 */
 void EllipticFACSolver::getFromInput(
-    const boost::shared_ptr<tbox::Database>& database)
+    const std::shared_ptr<tbox::Database>& database)
 {
    if (database->isBool("enable_logging")) {
       d_enable_logging = database->getBool("enable_logging");
@@ -137,7 +137,7 @@ void EllipticFACSolver::getFromInput(
 */
 void EllipticFACSolver::initializeSolverState(
     const int solution, const int rhs,
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int coarse_level, const int fine_level)
 {
    TBOX_ASSERT(hierarchy);
@@ -238,7 +238,7 @@ void EllipticFACSolver::deallocateSolverState()
 
 void EllipticFACSolver::resetSolverState(
     const int soln_id, const int rhs_id,
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    if (d_solver_is_initialized) {
       assert(hierarchy);
@@ -344,7 +344,7 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id)
 */
 bool EllipticFACSolver::solveSystem(
     const int u_id, const int f_id,
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy, int coarse_ln,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, int coarse_ln,
     int fine_ln)
 {
    TBOX_ASSERT(hierarchy);
@@ -382,7 +382,7 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
 {
 
    hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
-   boost::shared_ptr<hier::Variable> variable;
+   std::shared_ptr<hier::Variable> variable;
 
    if (!d_uv || d_uv->getComponentDescriptorIndex(0) != u) {
       d_uv.reset(new solv::SAMRAIVectorReal<double>(d_object_name + "::uv",
@@ -394,8 +394,8 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
          TBOX_ERROR(d_object_name << ": No variable for patch data index " << u
                                   << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      std::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << u
                                   << " is not a cell-double variable.\n");
@@ -414,8 +414,8 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
          TBOX_ERROR(d_object_name << ": No variable for patch data index " << f
                                   << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      std::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << f
                                   << " is not a cell-double variable.\n");

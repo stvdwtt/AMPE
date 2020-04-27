@@ -44,11 +44,11 @@
 using namespace std;
 
 #ifdef HAVE_TLOT
-void readLcoefficients(boost::shared_ptr<tbox::Database> db,
+void readLcoefficients(std::shared_ptr<tbox::Database> db,
                        double (&LmixPhase)[4][3])
 {
 #else
-void readLcoefficients(boost::shared_ptr<tbox::Database> db,
+void readLcoefficients(std::shared_ptr<tbox::Database> db,
                        double (&LmixPhase)[4][2])
 {
 #endif
@@ -94,8 +94,8 @@ void readLcoefficients(boost::shared_ptr<tbox::Database> db,
 }
 
 CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
-    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
-    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+    std::shared_ptr<SAMRAI::tbox::Database> calphad_db,
+    std::shared_ptr<SAMRAI::tbox::Database> newton_db,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     const bool with_third_phase)
@@ -129,7 +129,7 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsBinary::setupSolver(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    tbox::plog << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
    d_solver = new CALPHADConcentrationSolverBinary(d_with_third_phase);
@@ -140,7 +140,7 @@ void CALPHADFreeEnergyFunctionsBinary::setupSolver(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsBinary::readNewtonparameters(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    if (newton_db != NULL) {
       double tol = newton_db->getDoubleWithDefault("tol", 1.e-8);
@@ -158,9 +158,9 @@ void CALPHADFreeEnergyFunctionsBinary::readNewtonparameters(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsBinary::readParameters(
-    boost::shared_ptr<tbox::Database> calphad_db)
+    std::shared_ptr<tbox::Database> calphad_db)
 {
-   boost::shared_ptr<tbox::Database> species0_db =
+   std::shared_ptr<tbox::Database> species0_db =
        calphad_db->getDatabase("SpeciesA");
    string name = species0_db->getStringWithDefault("name", "unknown");
    string dbnameL("PhaseL");
@@ -184,7 +184,7 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(
       d_g_species_phaseB[0].initialize(name, species0_db->getDatabase(dbnameB));
    }
 
-   boost::shared_ptr<tbox::Database> speciesB_db =
+   std::shared_ptr<tbox::Database> speciesB_db =
        calphad_db->getDatabase("SpeciesB");
    name = speciesB_db->getStringWithDefault("name", "unknown");
    d_g_species_phaseL[1].initialize(name, speciesB_db->getDatabase(dbnameL));
@@ -209,16 +209,16 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(
       tbox::pout << "Input LmixPhase2 is deprecated.  Use LmixPhaseB." << endl;
       dbnamemixB = "LmixPhase2";
    }
-   boost::shared_ptr<tbox::Database> Lmix0_db =
+   std::shared_ptr<tbox::Database> Lmix0_db =
        calphad_db->getDatabase(dbnamemixL);
    readLcoefficients(Lmix0_db, d_LmixPhaseL);
 
-   boost::shared_ptr<tbox::Database> Lmix1_db =
+   std::shared_ptr<tbox::Database> Lmix1_db =
        calphad_db->getDatabase(dbnamemixA);
    readLcoefficients(Lmix1_db, d_LmixPhaseA);
 
    if (d_with_third_phase) {
-      boost::shared_ptr<tbox::Database> Lmix2_db =
+      std::shared_ptr<tbox::Database> Lmix2_db =
           calphad_db->getDatabase(dbnamemixB);
       readLcoefficients(Lmix2_db, d_LmixPhaseB);
    }
@@ -563,8 +563,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       cerr << "ERROR, "
               "CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() "
               "failed for conc="
-           << conc0 << ", hphi=" << hphi << ", heta=" << heta << endl;
-      sleep(5);
+           << conc0 << ", hphi=" << hphi << ", heta=" << heta << std::endl;
       tbox::SAMRAI_MPI::abort();
    }
 

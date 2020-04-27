@@ -41,7 +41,7 @@
 using namespace std;
 
 void CALPHADSpeciesPhaseGibbsEnergy::initialize(
-    const string& name, boost::shared_ptr<tbox::Database> db)
+    const string& name, std::shared_ptr<tbox::Database> db)
 {
    d_name = name;
    size_t ntc = db->getArraySize("Tc");

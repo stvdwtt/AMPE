@@ -38,8 +38,8 @@
 using namespace std;
 
 ConcFACSolver::ConcFACSolver(const std::string& object_name,
-                             boost::shared_ptr<ConcFACOps> fac_ops,
-                             const boost::shared_ptr<tbox::Database>& database)
+                             std::shared_ptr<ConcFACOps> fac_ops,
+                             const std::shared_ptr<tbox::Database>& database)
     : EllipticFACSolver(object_name, fac_ops, database)
 {
    t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
@@ -52,8 +52,8 @@ void ConcFACSolver::setOperatorCoefficients(const double gamma,
 {
    t_set_op_coef->start();
 
-   boost::shared_ptr<ConcFACOps> conc_fac_ops(
-       boost::dynamic_pointer_cast<ConcFACOps, EllipticFACOps>(d_fac_ops));
+   std::shared_ptr<ConcFACOps> conc_fac_ops(
+       std::dynamic_pointer_cast<ConcFACOps, EllipticFACOps>(d_fac_ops));
 
    conc_fac_ops->setOperatorCoefficients(gamma, diffusion_id, mobility);
 
