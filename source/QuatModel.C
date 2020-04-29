@@ -2883,9 +2883,10 @@ void QuatModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
       set<int> conc_id_set;
       set<int> temp_id_set;
 
-      d_integrator->getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set,
-                                                eta_id_set, orient_id_set,
-                                                conc_id_set, temp_id_set);
+      assert(false);
+//      d_integrator->getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set,
+//                                                eta_id_set, orient_id_set,
+//                                                conc_id_set, temp_id_set);
 
       set<int>::iterator it;
 

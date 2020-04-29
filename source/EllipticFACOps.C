@@ -832,12 +832,10 @@ void EllipticFACOps::deallocateOperatorState()
              d_oflux_scratch_id);
       }
       d_cf_boundary.resize(0);
-#if HAVE_HYPRE
       std::vector<CellPoissonHypreSolver *>::iterator it(
           d_hypre_solver.begin());
       for (; it != d_hypre_solver.end(); ++it)
          (*it)->deallocateSolverState();
-#endif
       d_hierarchy.reset();
       d_ln_min = -1;
       d_ln_max = -1;
@@ -914,7 +912,6 @@ void EllipticFACOps::finalizeCoefficients()
                                      "set;\n cannot finalize\n");
       }
 
-#if HAVE_HYPRE
    if (d_coarse_solver_choice == "hypre") {
 
       int counter = 0;
@@ -935,7 +932,6 @@ void EllipticFACOps::finalizeCoefficients()
          counter++;
       }
    }
-#endif
    t_finalizecoeffs->stop();
 }
 
